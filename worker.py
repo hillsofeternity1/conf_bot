@@ -7,17 +7,34 @@ from database import DataBase
 import os
 import urllib.request
 from urllib.parse import urlencode
+import json
 import settings
 import re
 
 class MessageWorker:
-    def __init__(self, db, stop_words = 'assets/stop-word.ru'):
+    def __init__(self, db, stop_words = 'assets/stop-word.ru', settings = settings):
         self.stop_words = stop_words
         self.db = db
+        self.telegram_key = settings.parser.get('bot', 'telegram_key')
+        self.telegram_api = settings.parser.get('bot', 'telegram_api')
+        self.me = self.getMe()
+        print("My name is %s" % self.me['result']['username'])
+
+    def getMe(self):
+        url =  self.telegram_api + 'bot' + self.telegram_key + '/getMe'
+        print(url)
+        urllib.request.Request(url)
+        request = urllib.request.Request(url)
+        raw = urllib.request.urlopen(request).read().decode()
+        return json.loads(raw)
 
     def handleUpdate(self, msg):
         try:
-            if msg['message']['text'] == '/scheme':
+            try:
+                input_message = msg['message']['text'].replace('@' + self.me['result']['username'], '')
+            except:
+                input_message = msg['message']['text']
+            if input_message == '/scheme':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
                 chat_title = msg['message']['chat']['title']
@@ -25,7 +42,7 @@ class MessageWorker:
                 self.send(id=conf_id, msg='```\n' + self.db.scheme + '\n```')
                 return True
 
-            if msg['message']['text'] == '/stat':
+            if input_message == '/stat':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
                 chat_title = msg['message']['chat']['title']
@@ -41,7 +58,7 @@ class MessageWorker:
                 self.send(id=conf_id, msg=message)
                 return True
 
-            if msg['message']['text'] == '/reset':
+            if input_message == '/reset':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
                 chat_title = msg['message']['chat']['title']
@@ -53,7 +70,7 @@ class MessageWorker:
                     user_id=user_id)
                 return True
 
-            if msg['message']['text'][:4] == '/sql':
+            if input_message[:4] == '/sql':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
                 chat_title = msg['message']['chat']['title']
@@ -76,20 +93,22 @@ class MessageWorker:
                 self.send(id=conf_id, msg=msg + ' ```')
                 return True
 
-            if msg['message']['text'][:5] == '@here' or \
-                msg['message']['text'][5:] == '@here':
+            if '@here' in input_message:
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
                 chat_title = msg['message']['chat']['title']
                 self.db.add_conf(conf_id, chat_title)
+                if msg['message']['text'] != '@here':
+                    message = msg['message']['text'].replace('@here', '\n')
+                else:
+                    message = """I summon you!\n"""
 
-                message = """I summon you!\n"""
                 users = self.db.here(
                     user_id=user_id,
                     conf_id=conf_id
                 )
                 for user in users:
-                    message += '@%s ' % (user[0])
+                    message += ' @%s ' % (user[0])
                 self.send(id=conf_id, msg=message)
                 return True
         except:
@@ -156,9 +175,7 @@ class MessageWorker:
 
     def send(self, id, msg):
         print(msg)
-        url =  settings.parser.get('bot', 'telegram_api') + \
-            'bot'+ settings.parser.get('bot', 'telegram_key') \
-            + '/sendMessage'
+        url =  self.telegram_api + 'bot' + self.telegram_key + '/sendMessage'
         post_fields = {
             'text': msg,
             'chat_id': id,
