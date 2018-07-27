@@ -7,9 +7,16 @@ from database import DataBase
 import os
 import urllib.request
 from urllib.parse import urlencode
+import requests
 import json
 import settings
 import re
+
+from pygments import highlight
+
+from pygments.lexers import PythonLexer
+
+from pygments.formatters import ImageFormatter
 
 class MessageWorker:
     def __init__(self, db, stop_words = 'assets/stop-word.ru', settings = settings):
@@ -111,6 +118,18 @@ class MessageWorker:
                     message += ' @%s ' % (user[0])
                 self.send(id=conf_id, msg=message)
                 return True
+            if input_message[:5] == '/code':
+                print("Going to highlight")
+                conf_id = msg['message']['chat']['id']
+                user_id = msg['message']['from']['id']
+                chat_title = msg['message']['chat']['title']
+                self.db.add_conf(conf_id, chat_title)
+                if len(msg['message']['text'][6:]) < 10000:
+                    code = msg['message']['text'][6:]
+                    print("Code to highlight: %s" % code)
+                    highlight(code, PythonLexer(),ImageFormatter(), outfile="code.png")
+                self.send_img(conf_id)
+                return True
         except:
             return False
         try:
@@ -174,7 +193,7 @@ class MessageWorker:
         return collection
 
     def send(self, id, msg):
-        print(msg)
+        #print(msg)
         url =  self.telegram_api + 'bot' + self.telegram_key + '/sendMessage'
         post_fields = {
             'text': msg,
@@ -186,3 +205,9 @@ class MessageWorker:
         request = urllib.request.Request(url, urlencode(post_fields).encode())
         json = urllib.request.urlopen(request).read().decode()
         return json
+
+    def send_img(self, id):
+        url =  self.telegram_api + 'bot' + self.telegram_key + '/sendPhoto'
+        data = {'chat_id': id}
+        files = {'photo': open('code.png', 'rb')}
+        r = requests.post(url, files=files, data=data)
