@@ -13,9 +13,8 @@ import settings
 import re
 
 from pygments import highlight
-
 from pygments.lexers import PythonLexer
-
+from pygments.lexers import guess_lexer, get_lexer_by_name
 from pygments.formatters import ImageFormatter
 
 class MessageWorker:
@@ -119,15 +118,16 @@ class MessageWorker:
                 self.send(id=conf_id, msg=message)
                 return True
             if input_message[:5] == '/code':
-                print("Going to highlight")
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
                 chat_title = msg['message']['chat']['title']
                 self.db.add_conf(conf_id, chat_title)
                 if len(msg['message']['text'][6:]) < 10000:
                     code = msg['message']['text'][6:]
-                    print("Code to highlight: %s" % code)
-                    highlight(code, PythonLexer(),ImageFormatter(), outfile="code.png")
+                    lexer_guess = guess_lexer(code)
+                    if lexer_guess.name == 'Text only':
+                        lexer_guess = get_lexer_by_name('python')
+                    highlight(code, lexer_guess, ImageFormatter(), outfile="code.png")
                 self.send_img(conf_id)
                 return True
         except:
@@ -146,7 +146,6 @@ class MessageWorker:
             user_id = msg['message']['from']['id']
             chat_id = msg['message']['chat']['id']
             chat_title = msg['message']['chat']['title']
-            #print(self.clean_text(text))
         except:
             return False
         
