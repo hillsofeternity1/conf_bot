@@ -127,7 +127,7 @@ class MessageWorker:
                     lexer_guess = guess_lexer(code)
                     if lexer_guess.name == 'Text only':
                         lexer_guess = get_lexer_by_name('python')
-                    highlight(code, lexer_guess, ImageFormatter(), outfile="code.png")
+                    highlight(code, lexer_guess, ImageFormatter(font_name='DejaVuSansMono'), outfile="code.png")
                 self.send_img(conf_id)
                 return True
         except:
