@@ -15,6 +15,7 @@ import re
 from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.lexers import guess_lexer, get_lexer_by_name
+from pygments.styles import get_style_by_name
 from pygments.formatters import ImageFormatter
 
 class MessageWorker:
@@ -124,10 +125,23 @@ class MessageWorker:
                 self.db.add_conf(conf_id, chat_title)
                 if len(msg['message']['text'][6:]) < 10000:
                     code = msg['message']['text'][6:]
-                    lexer_guess = guess_lexer(code)
-                    if lexer_guess.name == 'Text only':
-                        lexer_guess = get_lexer_by_name('python')
-                    highlight(code, lexer_guess, ImageFormatter(font_name='DejaVuSansMono'), outfile="code.png")
+                    code_tag = code[code.rfind('#')+1:]
+                    try:
+                      lexer = get_lexer_by_name(code_tag)
+                      code = code[:code.rfind('#')]
+                      print("Lexer is defined as %s" % lexer)
+                    except:
+                      lexer = guess_lexer(code)
+                    print("lexer is %s" % lexer)
+                    if lexer.name == 'Text only':
+                        lexer = get_lexer_by_name('python')
+                    highlight(code, lexer, ImageFormatter(
+                          font_size=16,
+                          line_number_bg="#242e0c",
+                          line_number_fg="#faddf2",
+                          line_number_bold=True,
+                          font_name='DejaVuSansMono',
+                          style=get_style_by_name('monokai')), outfile="code.png")
                 self.send_img(conf_id)
                 return True
         except:
