@@ -1,5 +1,6 @@
 import datetime as dt
 
+
 class DataBase:
     def __init__(self, basefile, scheme):
         import sqlite3
@@ -35,10 +36,10 @@ class DataBase:
         return(self.execute(sql)[0][0])
 
     def add_user(self,
-        username,
-        user_id,
-        first_name,
-        last_name):
+                 username,
+                 user_id,
+                 first_name,
+                 last_name):
         date = int(dt.datetime.now().strftime("%s"))
         sql = """INSERT OR IGNORE INTO 
         user('id', 'username', 'first_name', 'last_name', 'date') 
@@ -74,9 +75,9 @@ class DataBase:
             date
         )
         self.execute(sql)
-    
+
     def get_top(self, user_id, conf_id, limit=10):
-        sql= """
+        sql = """
         SELECT w.word, COUNT(*) as count FROM relations r 
         LEFT JOIN word w ON w.id = r.word_id
         LEFT JOIN `user` u ON u.id = r.user_id
@@ -99,7 +100,7 @@ class DataBase:
         return(result)
 
     def here(self, user_id, conf_id):
-        sql= """
+        sql = """
         SELECT DISTINCT(u.username) FROM relations r 
         LEFT JOIN user u 
         ON u.id = r.user_id
@@ -129,20 +130,20 @@ class DataBase:
 
     def command(self, sql):
         if 'DELETE' in sql.upper() \
-        or 'INSERT' in sql.upper() \
-        or 'UPDATE' in sql.upper() \
-        or 'DROP' in sql.upper() \
-        or 'CREATE' in sql.upper() \
-        or 'ALTER' in sql.upper():
+                or 'INSERT' in sql.upper() \
+                or 'UPDATE' in sql.upper() \
+                or 'DROP' in sql.upper() \
+                or 'CREATE' in sql.upper() \
+                or 'ALTER' in sql.upper():
             return('gtfo')
         try:
             if 'LIMIT' in sql.upper()[-9:]:
-              result = self.execute(sql)
+                result = self.execute(sql)
             else:
-              result = self.execute(sql + ' limit 20')
+                result = self.execute(sql + ' limit 20')
         except Exception as err:
             result = err
         return(result)
-    
+
     def close(self):
         self.conn.close()

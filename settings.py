@@ -12,4 +12,4 @@ db = DataBase(
     scheme='assets/main.db.sql')
 
 global worker
-worker = MessageWorker(db = db)
+worker = MessageWorker(db=db)

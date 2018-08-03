@@ -18,8 +18,9 @@ from pygments.lexers import guess_lexer, get_lexer_by_name
 from pygments.styles import get_style_by_name
 from pygments.formatters import ImageFormatter
 
+
 class MessageWorker:
-    def __init__(self, db, stop_words = 'assets/stop-word.ru', settings = settings):
+    def __init__(self, db, stop_words='assets/stop-word.ru', settings=settings):
         self.stop_words = stop_words
         self.db = db
         self.telegram_key = settings.parser.get('bot', 'telegram_key')
@@ -28,7 +29,7 @@ class MessageWorker:
         print("My name is %s" % self.me['result']['username'])
 
     def getMe(self):
-        url =  self.telegram_api + 'bot' + self.telegram_key + '/getMe'
+        url = self.telegram_api + 'bot' + self.telegram_key + '/getMe'
         print(url)
         urllib.request.Request(url)
         request = urllib.request.Request(url)
@@ -38,7 +39,8 @@ class MessageWorker:
     def handleUpdate(self, msg):
         try:
             try:
-                input_message = msg['message']['text'].replace('@' + self.me['result']['username'], '')
+                input_message = msg['message']['text'].replace(
+                    '@' + self.me['result']['username'], '')
             except:
                 input_message = msg['message']['text']
             if input_message == '/scheme':
@@ -86,17 +88,17 @@ class MessageWorker:
 
                 res = self.db.command(sql)
                 if 'syntax' in str(res) \
-                or 'ambiguous' in str(res):
-                  self.send(id=conf_id, msg=str(res))
-                  return False
+                        or 'ambiguous' in str(res):
+                    self.send(id=conf_id, msg=str(res))
+                    return False
                 try:
-                  msg = '```\n'
-                  for z in res:
-                    for i in z:
-                      msg = msg + str(i) + '\t'
-                    msg = msg + '\n'
+                    msg = '```\n'
+                    for z in res:
+                        for i in z:
+                            msg = msg + str(i) + '\t'
+                        msg = msg + '\n'
                 except:
-                  msg = res
+                    msg = res
                 self.send(id=conf_id, msg=msg + ' ```')
                 return True
 
@@ -125,23 +127,23 @@ class MessageWorker:
                 self.db.add_conf(conf_id, chat_title)
                 if len(msg['message']['text'][6:]) < 10000:
                     code = msg['message']['text'][6:]
-                    code_tag = code[code.rfind('#')+1:]
+                    code_tag = code[code.rfind('#') + 1:]
                     try:
-                      lexer = get_lexer_by_name(code_tag)
-                      code = code[:code.rfind('#')]
-                      print("Lexer is defined as %s" % lexer)
+                        lexer = get_lexer_by_name(code_tag)
+                        code = code[:code.rfind('#')]
+                        print("Lexer is defined as %s" % lexer)
                     except:
-                      lexer = guess_lexer(code)
+                        lexer = guess_lexer(code)
                     print("lexer is %s" % lexer)
                     if lexer.name == 'Text only':
                         lexer = get_lexer_by_name('python')
                     highlight(code, lexer, ImageFormatter(
-                          font_size=16,
-                          line_number_bg="#242e0c",
-                          line_number_fg="#faddf2",
-                          line_number_bold=True,
-                          font_name='DejaVuSansMono',
-                          style=get_style_by_name('monokai')), outfile="code.png")
+                        font_size=16,
+                        line_number_bg="#242e0c",
+                        line_number_fg="#faddf2",
+                        line_number_bold=True,
+                        font_name='DejaVuSansMono',
+                        style=get_style_by_name('monokai')), outfile="code.png")
                 self.send_img(conf_id)
                 return True
         except:
@@ -162,32 +164,32 @@ class MessageWorker:
             chat_title = msg['message']['chat']['title']
         except:
             return False
-        
+
         collection = self.clean_text(text)
-        
+
         self.db.add_user(username,
-            user_id,
-            first_name,
-            last_name)
+                         user_id,
+                         first_name,
+                         last_name)
 
         self.db.add_conf(chat_id, chat_title)
 
         for word in collection:
             self.db.add_relation(word=word, user_id=user_id, conf_id=chat_id)
-        
-        
+
     def clean_text(self, s):
         file = open(self.stop_words, 'rt')
         sw = file.read().split('\n')
         file.close()
-        s = re.sub(r'(https?:\/\/)?([\da-z\.-]+)\.([\/\w\.-]*)*\/?\S','',s,flags=re.MULTILINE)
+        s = re.sub(
+            r'(https?:\/\/)?([\da-z\.-]+)\.([\/\w\.-]*)*\/?\S', '', s, flags=re.MULTILINE)
         print(s)
         # dirty hack with dat fucking file
-        fh = open("tmp.txt","w")
+        fh = open("tmp.txt", "w")
         fh.write(s)
         fh.close()
         cmd = "./assets/mystem -nlwd < tmp.txt"
-        ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+        ps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         output = ps.communicate()[0]
         os.remove("tmp.txt")
         # end of the fuckin' dirty hack
@@ -196,7 +198,7 @@ class MessageWorker:
         s = s.split('\n')
         collection = []
         for word in s:
-            if len(word) >2:
+            if len(word) > 2:
                 if word not in sw:
                     collection.append(word)
                 else:
@@ -206,21 +208,21 @@ class MessageWorker:
         return collection
 
     def send(self, id, msg):
-        #print(msg)
-        url =  self.telegram_api + 'bot' + self.telegram_key + '/sendMessage'
+        # print(msg)
+        url = self.telegram_api + 'bot' + self.telegram_key + '/sendMessage'
         post_fields = {
             'text': msg,
             'chat_id': id,
             'parse_mode': 'Markdown',
             'disable_web_page_preview': 1
-            }
+        }
         urllib.request.Request(url, urlencode(post_fields).encode())
         request = urllib.request.Request(url, urlencode(post_fields).encode())
         json = urllib.request.urlopen(request).read().decode()
         return json
 
     def send_img(self, id):
-        url =  self.telegram_api + 'bot' + self.telegram_key + '/sendPhoto'
+        url = self.telegram_api + 'bot' + self.telegram_key + '/sendPhoto'
         data = {'chat_id': id}
         files = {'photo': open('code.png', 'rb')}
         r = requests.post(url, files=files, data=data)

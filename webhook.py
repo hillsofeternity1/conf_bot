@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from http.server import HTTPServer,SimpleHTTPRequestHandler,CGIHTTPRequestHandler
+from http.server import HTTPServer, SimpleHTTPRequestHandler, CGIHTTPRequestHandler
 from socketserver import BaseServer
 import ssl
 import json
 import settings
 
-# fuckin dirty hack. idk the best way to inherit return func into 
+# fuckin dirty hack. idk the best way to inherit return func into
 # RequestHandler class
+
 
 class RequestHandler(SimpleHTTPRequestHandler):
     def __init__(self,
-        request,
-        client_address,
-        server):
+                 request,
+                 client_address,
+                 server):
         self.worker = settings.worker
         super(RequestHandler, self).__init__(
             request=request,
@@ -26,30 +27,29 @@ class RequestHandler(SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-Type', 'text/html')
         self.end_headers()
-        
+
         length = self.headers.get('content-length')
         post_body = self.rfile.read(int(length))
         msg = json.loads(post_body.decode("utf-8"))
         self.worker.handleUpdate(msg)
-        
+
     def do_GET(self):
         pass
 
 
-
 class WebHook:
     def __init__(self,
-        certfile,
-        keyfile,
-        address = '0.0.0.0',
-        port=8443,
-        RequestHandler=RequestHandler):
+                 certfile,
+                 keyfile,
+                 address='0.0.0.0',
+                 port=8443,
+                 RequestHandler=RequestHandler):
 
         self.httpd = HTTPServer((address, port), RequestHandler)
-        self.httpd.socket = ssl.wrap_socket (self.httpd.socket,
-            certfile=certfile,
-            keyfile=keyfile,
-            server_side=True)
+        self.httpd.socket = ssl.wrap_socket(self.httpd.socket,
+                                            certfile=certfile,
+                                            keyfile=keyfile,
+                                            server_side=True)
 
     def serve(self):
         try:
