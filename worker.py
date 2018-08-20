@@ -39,6 +39,26 @@ class MessageWorker:
     def handleUpdate(self, msg):
         try:
             try:
+                input_message = msg['message']['text']
+                if ('@here' in input_message) or (' @'+self.me['result']['username'] in input_message):
+                    conf_id = msg['message']['chat']['id']
+                    user_id = msg['message']['from']['id']
+                    chat_title = msg['message']['chat']['title']
+                    self.db.add_conf(conf_id, chat_title)
+                    if msg['message']['text'] != '@here':
+                        message = msg['message']['text'].replace('@here', '\n').replace(' @'+self.me['result']['username'], '\n')
+                    else:
+                        message = """I summon you!\n"""
+
+                    users = self.db.here(
+                        user_id=user_id,
+                        conf_id=conf_id
+                    )
+                    for user in users:
+                        message += ' @%s ' % (user[0])
+                    self.send(id=conf_id, msg=message)
+                    return True
+            
                 input_message = msg['message']['text'].replace(
                     '@' + self.me['result']['username'], '')
             except:
@@ -102,24 +122,24 @@ class MessageWorker:
                 self.send(id=conf_id, msg=msg + ' ```')
                 return True
 
-            if '@here' in input_message:
-                conf_id = msg['message']['chat']['id']
-                user_id = msg['message']['from']['id']
-                chat_title = msg['message']['chat']['title']
-                self.db.add_conf(conf_id, chat_title)
-                if msg['message']['text'] != '@here':
-                    message = msg['message']['text'].replace('@here', '\n')
-                else:
-                    message = """I summon you!\n"""
+#           if '@here' in input_message:
+#               conf_id = msg['message']['chat']['id']
+#               user_id = msg['message']['from']['id']
+#               chat_title = msg['message']['chat']['title']
+#               self.db.add_conf(conf_id, chat_title)
+#               if msg['message']['text'] != '@here':
+#                   message = msg['message']['text'].replace('@here', '\n')
+#               else:
+#                   message = """I summon you!\n"""
 
-                users = self.db.here(
-                    user_id=user_id,
-                    conf_id=conf_id
-                )
-                for user in users:
-                    message += ' @%s ' % (user[0])
-                self.send(id=conf_id, msg=message)
-                return True
+#               users = self.db.here(
+#                   user_id=user_id,
+#                   conf_id=conf_id
+#               )
+#               for user in users:
+#                   message += ' @%s ' % (user[0])
+#               self.send(id=conf_id, msg=message)
+#               return True
             if input_message[:5] == '/code':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
