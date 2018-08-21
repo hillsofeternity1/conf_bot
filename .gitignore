@@ -5,3 +5,5 @@ main.db
 main.db-journal
 settings.ini
 code.png
+*.swp
+*.swo
