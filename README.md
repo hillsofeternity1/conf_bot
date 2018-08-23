@@ -1,4 +1,4 @@
-# Full burst ultimate storm revolution conf_bot
+# Full burst ultimate storm revolution Telegram Conference Bot
 
 # Create your own spy bot in Telegram ¯\_(ツ)_/¯
 
