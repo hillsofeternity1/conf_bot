@@ -170,7 +170,10 @@ class MessageWorker:
             return False
         try:
             text = msg['message']['text']
-            username = msg['message']['from']['username']
+            try:
+                username = msg['message']['from']['username']
+            except:
+                username = "_null"
             try:
                 last_name = msg['message']['from']['last_name']
             except:
