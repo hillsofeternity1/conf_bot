@@ -41,6 +41,24 @@ class DataBase:
                  first_name,
                  last_name):
         date = int(dt.datetime.now().strftime("%s"))
+        try:
+            sql = """
+            UPDATE user
+            SET
+                username = '%s',
+                first_name = '%s',
+                last_name = '%s'
+            WHERE
+                id = '%s'
+            """ % (
+                username,
+                first_name,
+                last_name,
+                user_id
+            )
+            self.execute(sql)
+        except:
+            pass
         sql = """INSERT OR IGNORE INTO 
         user('id', 'username', 'first_name', 'last_name', 'date') 
         VALUES ('%s','%s','%s','%s','%s')""" % (
