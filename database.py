@@ -35,6 +35,14 @@ class DataBase:
         sql = "SELECT id FROM word WHERE word = '%s'" % word
         return(self.execute(sql)[0][0])
 
+    def get_alert(self):
+        now = dt.datetime.now().strftime("%H%M")
+        sql = "SELECT * FROM alert WHERE time = '%s'" % now
+        alerts = self.execute(sql)
+        sql = "DELETE FROM alert WHERE time = '%s'" % now
+        self.execute(sql)
+        return alerts
+
     def add_user(self,
                  username,
                  user_id,
@@ -94,6 +102,20 @@ class DataBase:
         )
         self.execute(sql)
 
+    def add_alert(self, user_id, conf_id, alert_time, message):
+        date = int(dt.datetime.now().strftime("%s"))
+        sql = """INSERT OR IGNORE INTO 
+        alert('conf_id', 'user_id', 'created', 'time', 'message') 
+        VALUES ('%s','%s','%s','%s','%s')""" % (
+            conf_id,
+            user_id,
+            date,
+            alert_time,
+            message
+        )
+        print('ALERT: ', sql)
+        self.execute(sql)
+
     def get_top(self, user_id, conf_id, limit=10):
         sql = """
         SELECT w.word, COUNT(*) as count FROM relations r 
@@ -113,6 +135,20 @@ class DataBase:
             user_id,
             conf_id,
             limit
+        )
+        result = self.execute(sql)
+        return(result)
+
+    def all_conf_users(self, conf_id):
+        sql = """
+        SELECT DISTINCT(u.username) FROM relations r 
+        LEFT JOIN user u 
+        ON u.id = r.user_id
+        LEFT JOIN conf c 
+        ON r.conf_id = c.id
+        WHERE c.id = '%s'
+        """ % (
+            conf_id
         )
         result = self.execute(sql)
         return(result)

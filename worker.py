@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from string import punctuation
 import subprocess
-from database import DataBase
 import os
 import urllib.request
-from urllib.parse import urlencode
 import requests
 import json
 import settings
 import re
+import time
+import threading
+
+from string import punctuation
+from urllib.parse import urlencode
+from database import DataBase
 
 from pygments import highlight
 from pygments.lexers import PythonLexer
@@ -26,6 +29,7 @@ class MessageWorker:
         self.telegram_key = settings.parser.get('bot', 'telegram_key')
         self.telegram_api = settings.parser.get('bot', 'telegram_api')
         self.me = self.getMe()
+        self.cron_timer()
         print("My name is %s" % self.me['result']['username'])
 
     def getMe(self):
@@ -35,6 +39,13 @@ class MessageWorker:
         request = urllib.request.Request(url)
         raw = urllib.request.urlopen(request).read().decode()
         return json.loads(raw)
+
+    def isTime(self, string):
+        try:
+            time.strptime(string, '%H%M')
+            return True
+        except ValueError:
+            return False
 
     def handleUpdate(self, msg):
         try:
@@ -122,24 +133,21 @@ class MessageWorker:
                 self.send(id=conf_id, msg=msg + ' ```')
                 return True
 
-#           if '@here' in input_message:
-#               conf_id = msg['message']['chat']['id']
-#               user_id = msg['message']['from']['id']
-#               chat_title = msg['message']['chat']['title']
-#               self.db.add_conf(conf_id, chat_title)
-#               if msg['message']['text'] != '@here':
-#                   message = msg['message']['text'].replace('@here', '\n')
-#               else:
-#                   message = """I summon you!\n"""
+            if input_message[:6] == '/alert':
+                conf_id = msg['message']['chat']['id']
+                user_id = msg['message']['from']['id']
+                chat_title = msg['message']['chat']['title']
+                self.db.add_conf(conf_id, chat_title)
+                msg = msg['message']['text'].split()[1:]
+                alert_time = msg[-1].replace(':', '').replace('.', '').replace(' ', '')
+                print("Check if it's correct time ", alert_time)
+                if self.isTime(alert_time):
+                    print("Its correct time")
+                    message = " ".join(msg[0:-1])
+                    self.db.add_alert(user_id, conf_id, alert_time, message)
+                    self.send(id=conf_id, msg='Alert created.')
+                return True
 
-#               users = self.db.here(
-#                   user_id=user_id,
-#                   conf_id=conf_id
-#               )
-#               for user in users:
-#                   message += ' @%s ' % (user[0])
-#               self.send(id=conf_id, msg=message)
-#               return True
             if input_message[:5] == '/code':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
@@ -249,3 +257,15 @@ class MessageWorker:
         data = {'chat_id': id}
         files = {'photo': open('code.png', 'rb')}
         r = requests.post(url, files=files, data=data)
+
+    def cron_timer(self):
+        alerts = self.db.get_alert()
+        print("Check alerts")
+        for alert in alerts:
+            users = self.db.all_conf_users(conf_id=alert[0])
+            msg = ""
+            for user in users:
+                msg += ' @%s ' % (user[0])
+            msg += "Hey all!\n %s" % alert[4]
+            self.send(id=alert[0], msg=msg)
+        threading.Timer(30, self.cron_timer).start()
