@@ -1,11 +1,11 @@
 BEGIN TRANSACTION;
--- DROP TABLE IF EXISTS `word`;
-CREATE TABLE IF NOT EXISTS `word` (
+
+CREATE TABLE `word` (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`word`	TEXT UNIQUE
 );
--- DROP TABLE IF EXISTS `user`;
-CREATE TABLE IF NOT EXISTS `user` (
+CREATE TABLE sqlite_sequence(name,seq);
+CREATE TABLE `user` (
 	`id`	INTEGER NOT NULL UNIQUE,
 	`username`	TEXT NOT NULL,
 	`first_name`	INTEGER NOT NULL,
@@ -13,8 +13,23 @@ CREATE TABLE IF NOT EXISTS `user` (
 	`date`	INTEGER NOT NULL,
 	PRIMARY KEY(`id`)
 );
--- DROP TABLE IF EXISTS `reset`;
-CREATE TABLE IF NOT EXISTS `reset` (
+CREATE TABLE `conf` (
+	`id`	NUMERIC NOT NULL UNIQUE,
+	`title`	TEXT,
+	`date`	INTEGER NOT NULL,
+	PRIMARY KEY(`id`)
+);
+CREATE TABLE IF NOT EXISTS "relations" (
+	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	`word_id`	INTEGER NOT NULL,
+	`user_id`	INTEGER NOT NULL,
+	`conf_id`	INTEGER NOT NULL,
+	`date`	INTEGER NOT NULL,
+	FOREIGN KEY(`word_id`) REFERENCES `word`(`id`) ON DELETE CASCADE,
+	FOREIGN KEY(`user_id`) REFERENCES `user`(`id`),
+	FOREIGN KEY(`conf_id`) REFERENCES `conf`(`id`)
+);
+CREATE TABLE `reset` (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`user_id`	INTEGER,
 	`conf_id`	INTEGER,
@@ -22,22 +37,11 @@ CREATE TABLE IF NOT EXISTS `reset` (
 	`relation_id`	INTEGER,
 	FOREIGN KEY(`user_id`) REFERENCES `user`(`id`)
 );
--- DROP TABLE IF EXISTS `relations`;
-CREATE TABLE IF NOT EXISTS `relations` (
-	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	`word_id`	INTEGER NOT NULL,
-	`user_id`	INTEGER NOT NULL,
-	`conf_id`	INTEGER NOT NULL,
-	`date`	INTEGER NOT NULL,
-	FOREIGN KEY(`conf_id`) REFERENCES `conf`(`id`),
-	FOREIGN KEY(`word_id`) REFERENCES `word`(`id`),
-	FOREIGN KEY(`user_id`) REFERENCES `user`(`id`)
-);
--- DROP TABLE IF EXISTS `conf`;
-CREATE TABLE IF NOT EXISTS `conf` (
-	`id`	NUMERIC NOT NULL UNIQUE,
-	`title`	TEXT,
-	`date`	INTEGER NOT NULL,
-	PRIMARY KEY(`id`)
+CREATE TABLE `alert` (
+`conf_id`TEXT NOT NULL,
+`user_id`TEXT NOT NULL,
+`created`TEXT NOT NULL,
+`time`TEXT NOT NULL,
+`message`TEXT
 );
 COMMIT;
