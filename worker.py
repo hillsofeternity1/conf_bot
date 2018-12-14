@@ -51,7 +51,11 @@ class MessageWorker:
         try:
             try:
                 input_message = msg['message']['text']
+                print(msg['message']['chat']['id'])
+                print("-1001233797421")
                 if ('@here' in input_message) or (' @'+self.me['result']['username'] in input_message):
+                    if str(msg['message']['chat']['id']) != "-1001233797421":
+                        return
                     conf_id = msg['message']['chat']['id']
                     user_id = msg['message']['from']['id']
                     chat_title = msg['message']['chat']['title']
@@ -140,9 +144,7 @@ class MessageWorker:
                 self.db.add_conf(conf_id, chat_title)
                 msg = msg['message']['text'].split()[1:]
                 alert_time = msg[-1].replace(':', '').replace('.', '').replace(' ', '')
-                print("Check if it's correct time ", alert_time)
                 if self.isTime(alert_time):
-                    print("Its correct time")
                     message = " ".join(msg[0:-1])
                     self.db.add_alert(user_id, conf_id, alert_time, message)
                     self.send(id=conf_id, msg='Alert created.')
@@ -195,7 +197,7 @@ class MessageWorker:
             chat_title = msg['message']['chat']['title']
         except:
             return False
-
+        print("[%s] (%s) %s %s %s: %s" % (chat_title, user_id, username, first_name, last_name, text))
         collection = self.clean_text(text)
 
         self.db.add_user(username,
@@ -214,7 +216,6 @@ class MessageWorker:
         file.close()
         s = re.sub(
             r'(https?:\/\/)?([\da-z\.-]+)\.([\/\w\.-]*)*\/?\S', '', s, flags=re.MULTILINE)
-        print(s)
         # dirty hack with dat fucking file
         fh = open("tmp.txt", "w")
         fh.write(s)
@@ -260,7 +261,6 @@ class MessageWorker:
 
     def cron_timer(self):
         alerts = self.db.get_alert()
-        print("Check alerts")
         for alert in alerts:
             users = self.db.all_conf_users(conf_id=alert[0])
             msg = ""
