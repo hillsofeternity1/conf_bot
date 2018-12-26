@@ -153,6 +153,11 @@ class DataBase:
         result = self.execute(sql)
         return(result)
 
+    def get_random_word(self, count=1):
+        sql = "SELECT word FROM word ORDER BY random() LIMIT %s" % count
+        result = self.execute(sql)
+        return(result)
+
     def here(self, user_id, conf_id):
         sql = """
         SELECT DISTINCT(u.username) FROM relations r 

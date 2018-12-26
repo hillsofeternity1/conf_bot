@@ -10,6 +10,7 @@ import settings
 import re
 import time
 import threading
+import random
 
 from string import punctuation
 from urllib.parse import urlencode
@@ -51,8 +52,6 @@ class MessageWorker:
         try:
             try:
                 input_message = msg['message']['text']
-                print(msg['message']['chat']['id'])
-                print("-1001233797421")
                 if ('@here' in input_message) or (' @'+self.me['result']['username'] in input_message):
                     if str(msg['message']['chat']['id']) != "-1001233797421":
                         return
@@ -78,6 +77,34 @@ class MessageWorker:
                     '@' + self.me['result']['username'], '')
             except:
                 input_message = msg['message']['text']
+            if random.randint(0,100) == 1:
+                conf_id = msg['message']['chat']['id']
+                user_id = msg['message']['from']['id']
+                chat_title = msg['message']['chat']['title']
+                self.db.add_conf(conf_id, chat_title)
+                answers = self.db.get_random_word(count=2)
+                msg = "Ты %s и %s." % (answers[0][0], answers[1][0])
+                self.send(id=conf_id, msg=msg)
+            if (input_message[0] == 'я') or (input_message[0] == 'Я'):
+                if len(input_message) > 3:
+                    conf_id = msg['message']['chat']['id']
+                    user_id = msg['message']['from']['id']
+                    chat_title = msg['message']['chat']['title']
+                    self.db.add_conf(conf_id, chat_title)
+                    answers = ['И чо бля?','Да и похуй.','Ну и хуй с тобой.','Нет я.']
+                    if random.randint(0,100) > 80:
+                        msg = answers[random.randint(0,len(answers)-1)]
+                        self.send(id=conf_id, msg=msg)
+            if (input_message[0] == 'Ты') or (input_message[0] == 'ты'):
+                if len(input_message) > 5:
+                    conf_id = msg['message']['chat']['id']
+                    user_id = msg['message']['from']['id']
+                    chat_title = msg['message']['chat']['title']
+                    self.db.add_conf(conf_id, chat_title)
+                    answers = ['Двачую.','Да.', 'А я покакал.', "Винда лучше."]
+                    if random.randint(0,100) > 70:
+                        msg = answers[random.randint(0,len(answers)-1)]
+                        self.send(id=conf_id, msg=msg)
             if input_message == '/scheme':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
