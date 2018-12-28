@@ -77,13 +77,14 @@ class MessageWorker:
                     '@' + self.me['result']['username'], '')
             except:
                 input_message = msg['message']['text']
-            if random.randint(0,100) == 1:
+            if random.randint(0,300) == 1:
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
                 chat_title = msg['message']['chat']['title']
                 self.db.add_conf(conf_id, chat_title)
-                answers = self.db.get_random_word(count=2)
-                msg = "Ты %s и %s." % (answers[0][0], answers[1][0])
+                word_aya = self.db.get_random_word(count=1, like="%ая")
+                word_da = self.db.get_random_word(count=1, like="%да")
+                msg = "Ты %s %s." % (word_aya[0][0], word_da[0][0])
                 self.send(id=conf_id, msg=msg)
             if (input_message[0] == 'я') or (input_message[0] == 'Я'):
                 if len(input_message) > 3:
@@ -266,13 +267,13 @@ class MessageWorker:
                 pass
         return collection
 
-    def send(self, id, msg):
+    def send(self, id, msg, parse_mode='Markdown'):
         # print(msg)
         url = self.telegram_api + 'bot' + self.telegram_key + '/sendMessage'
         post_fields = {
             'text': msg,
             'chat_id': id,
-            'parse_mode': 'Markdown',
+            'parse_mode': parse_mode,
             'disable_web_page_preview': 1
         }
         urllib.request.Request(url, urlencode(post_fields).encode())
@@ -294,5 +295,5 @@ class MessageWorker:
             for user in users:
                 msg += ' @%s ' % (user[0])
             msg += "Hey all!\n %s" % alert[4]
-            self.send(id=alert[0], msg=msg)
+            self.send(id=alert[0], msg=msg, parse_mode='HTML')
         threading.Timer(30, self.cron_timer).start()

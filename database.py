@@ -153,8 +153,9 @@ class DataBase:
         result = self.execute(sql)
         return(result)
 
-    def get_random_word(self, count=1):
-        sql = "SELECT word FROM word ORDER BY random() LIMIT %s" % count
+    def get_random_word(self, count=1, like="%"):
+        sql = "SELECT word FROM word WHERE word LIKE '%s' ORDER BY random() LIMIT %s" % (like, count)
+        print(sql)
         result = self.execute(sql)
         return(result)
 
