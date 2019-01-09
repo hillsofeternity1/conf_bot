@@ -48,12 +48,35 @@ class MessageWorker:
         except ValueError:
             return False
 
+    def colorize(self, code):
+        code_tag = code[code.rfind('#') + 1:]
+        try:
+            lexer = get_lexer_by_name(code_tag)
+            code = code[:code.rfind('#')]
+        except:
+            lexer = guess_lexer(code)
+        print("Lexer is defined as %s" % lexer)
+        if lexer.name == 'Text only':
+            lexer = get_lexer_by_name('python')
+        try:
+            highlight(code, lexer, ImageFormatter(
+                font_size=16,
+                line_number_bg="#242e0c",
+                line_number_fg="#faddf2",
+                line_number_bold=True,
+                font_name='DejaVuSansMono',
+                style=get_style_by_name('monokai')), outfile="code.png")
+        except Exception as e:
+            print(e)
+            return e
+
     def handleUpdate(self, msg):
         try:
             try:
                 input_message = msg['message']['text']
                 if ('@here' in input_message) or (' @'+self.me['result']['username'] in input_message):
                     if str(msg['message']['chat']['id']) != "-1001233797421":
+                        print("@here isn't available for '%s' (%s)" % (msg['message']['chat']['title'], msg['message']['chat']['id']))
                         return
                     conf_id = msg['message']['chat']['id']
                     user_id = msg['message']['from']['id']
@@ -69,7 +92,7 @@ class MessageWorker:
                         conf_id=conf_id
                     )
                     for user in users:
-                        message += ' @%s ' % (user[0])
+                        message += ' [%s](tg://user?id=%s)' % (user[2], user[1])
                     self.send(id=conf_id, msg=message)
                     return True
             
@@ -179,29 +202,17 @@ class MessageWorker:
                 return True
 
             if input_message[:5] == '/code':
+# codefunc
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
                 chat_title = msg['message']['chat']['title']
                 self.db.add_conf(conf_id, chat_title)
                 if len(msg['message']['text'][6:]) < 10000:
-                    code = msg['message']['text'][6:]
-                    code_tag = code[code.rfind('#') + 1:]
+                    print(msg['message']['text'][6:])
                     try:
-                        lexer = get_lexer_by_name(code_tag)
-                        code = code[:code.rfind('#')]
-                        print("Lexer is defined as %s" % lexer)
-                    except:
-                        lexer = guess_lexer(code)
-                    print("lexer is %s" % lexer)
-                    if lexer.name == 'Text only':
-                        lexer = get_lexer_by_name('python')
-                    highlight(code, lexer, ImageFormatter(
-                        font_size=16,
-                        line_number_bg="#242e0c",
-                        line_number_fg="#faddf2",
-                        line_number_bold=True,
-                        font_name='DejaVuSansMono',
-                        style=get_style_by_name('monokai')), outfile="code.png")
+                        self.colorize(msg['message']['text'][6:])
+                    except Exception as e:
+                        print(e)
                 self.send_img(conf_id)
                 return True
         except:
@@ -282,10 +293,15 @@ class MessageWorker:
         return json
 
     def send_img(self, id):
+      print('Going to send code.png to %s' % id)
+      try:
         url = self.telegram_api + 'bot' + self.telegram_key + '/sendPhoto'
         data = {'chat_id': id}
         files = {'photo': open('code.png', 'rb')}
         r = requests.post(url, files=files, data=data)
+        print(r)
+      except Exception as e:
+        print(e)
 
     def cron_timer(self):
         alerts = self.db.get_alert()

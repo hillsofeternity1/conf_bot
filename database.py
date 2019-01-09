@@ -161,7 +161,7 @@ class DataBase:
 
     def here(self, user_id, conf_id):
         sql = """
-        SELECT DISTINCT(u.username) FROM relations r 
+        SELECT DISTINCT(u.username), u.id, u.first_name FROM relations r 
         LEFT JOIN user u 
         ON u.id = r.user_id
         LEFT JOIN conf c 
