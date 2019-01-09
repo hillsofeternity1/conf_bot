@@ -100,35 +100,36 @@ class MessageWorker:
                     '@' + self.me['result']['username'], '')
             except:
                 input_message = msg['message']['text']
-            if random.randint(0,300) == 1:
-                conf_id = msg['message']['chat']['id']
-                user_id = msg['message']['from']['id']
-                chat_title = msg['message']['chat']['title']
-                self.db.add_conf(conf_id, chat_title)
-                word_aya = self.db.get_random_word(count=1, like="%ая")
-                word_da = self.db.get_random_word(count=1, like="%да")
-                msg = "Ты %s %s." % (word_aya[0][0], word_da[0][0])
-                self.send(id=conf_id, msg=msg)
-            if (input_message[0] == 'я') or (input_message[0] == 'Я'):
-                if len(input_message) > 3:
+            if str(msg['message']['chat']['id']) == "-1001233797421":
+                if random.randint(0,300) == 1:
                     conf_id = msg['message']['chat']['id']
                     user_id = msg['message']['from']['id']
                     chat_title = msg['message']['chat']['title']
                     self.db.add_conf(conf_id, chat_title)
-                    answers = ['И чо бля?','Да и похуй.','Ну и хуй с тобой.','Нет я.']
-                    if random.randint(0,100) > 80:
-                        msg = answers[random.randint(0,len(answers)-1)]
-                        self.send(id=conf_id, msg=msg)
-            if (input_message[0] == 'Ты') or (input_message[0] == 'ты'):
-                if len(input_message) > 5:
-                    conf_id = msg['message']['chat']['id']
-                    user_id = msg['message']['from']['id']
-                    chat_title = msg['message']['chat']['title']
-                    self.db.add_conf(conf_id, chat_title)
-                    answers = ['Двачую.','Да.', 'А я покакал.', "Винда лучше."]
-                    if random.randint(0,100) > 70:
-                        msg = answers[random.randint(0,len(answers)-1)]
-                        self.send(id=conf_id, msg=msg)
+                    word_aya = self.db.get_random_word(count=1, like="%ая")
+                    word_da = self.db.get_random_word(count=1, like="%да")
+                    msg = "Ты %s %s." % (word_aya[0][0], word_da[0][0])
+                    self.send(id=conf_id, msg=msg)
+                if (input_message[0] == 'я') or (input_message[0] == 'Я'):
+                    if len(input_message) > 3:
+                        conf_id = msg['message']['chat']['id']
+                        user_id = msg['message']['from']['id']
+                        chat_title = msg['message']['chat']['title']
+                        self.db.add_conf(conf_id, chat_title)
+                        answers = ['И чо бля?','Да и похуй.','Ну и хуй с тобой.','Нет я.']
+                        if random.randint(0,100) > 80:
+                            msg = answers[random.randint(0,len(answers)-1)]
+                            self.send(id=conf_id, msg=msg)
+                if (input_message[0:1] == 'Ты') or (input_message[0:1] == 'ты'):
+                    if len(input_message) > 5:
+                        conf_id = msg['message']['chat']['id']
+                        user_id = msg['message']['from']['id']
+                        chat_title = msg['message']['chat']['title']
+                        self.db.add_conf(conf_id, chat_title)
+                        answers = ['Двачую.','Да.', 'А я покакал.', "Винда лучше."]
+                        if random.randint(0,100) > 70:
+                            msg = answers[random.randint(0,len(answers)-1)]
+                            self.send(id=conf_id, msg=msg)
             if input_message == '/scheme':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
