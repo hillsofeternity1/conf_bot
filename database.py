@@ -89,15 +89,20 @@ class DataBase:
         )
         self.execute(sql)
 
-    def add_relation(self, word, user_id, conf_id):
+    def add_relation(self, word, user_id, conf_id, text):
         word_id = self.save_word(word)
         date = int(dt.datetime.now().strftime("%s"))
+        sql2 = "INSERT OR IGNORE INTO xxx_message('text') VALUES ('%s')" % text
+        self.execute(sql2)
+        sql3 = "SELECT id FROM `xxx_message` WHERE text = '%s'" % text
+        msg_id = self.execute(sql3)[0][0]
         sql = """INSERT OR IGNORE INTO 
-        relations('word_id', 'user_id', 'conf_id', 'date') 
-        VALUES ('%s','%s','%s','%s')""" % (
+        relations('word_id', 'user_id', 'conf_id', 'msg_id', 'date') 
+        VALUES ('%s','%s','%s','%s', '%s')""" % (
             word_id,
             user_id,
             conf_id,
+            msg_id,
             date
         )
         self.execute(sql)

@@ -248,7 +248,7 @@ class MessageWorker:
         self.db.add_conf(chat_id, chat_title)
 
         for word in collection:
-            self.db.add_relation(word=word, user_id=user_id, conf_id=chat_id)
+            self.db.add_relation(word=word, user_id=user_id, conf_id=chat_id, text=text)
 
     def clean_text(self, s):
         file = open(self.stop_words, 'rt')
