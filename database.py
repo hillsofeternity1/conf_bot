@@ -146,7 +146,7 @@ class DataBase:
 
     def all_conf_users(self, conf_id):
         sql = """
-        SELECT DISTINCT(u.username) FROM relations r 
+        SELECT DISTINCT(u.username), u.first_name, u.id FROM relations r 
         LEFT JOIN user u 
         ON u.id = r.user_id
         LEFT JOIN conf c 

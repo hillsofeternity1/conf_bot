@@ -310,7 +310,7 @@ class MessageWorker:
             users = self.db.all_conf_users(conf_id=alert[0])
             msg = ""
             for user in users:
-                msg += ' @%s ' % (user[0])
-            msg += "Hey all!\n %s" % alert[4]
-            self.send(id=alert[0], msg=msg, parse_mode='HTML')
+                msg += ' [%s](tg://user?id=%s) ' % (user[1], user[2])
+            msg += "\nHey all!\n%s" % alert[4]
+            self.send(id=alert[0], msg=msg)
         threading.Timer(30, self.cron_timer).start()
