@@ -44,9 +44,16 @@ class MessageWorker:
     def isTime(self, string):
         try:
             time.strptime(string, '%H%M')
-            return True
+            return string
         except ValueError:
-            return False
+            pass
+        try:
+            if (int(string[1:]) > 0) and (string[0] == '+') and (len(string[1:]) < 3):
+              return string
+        except:
+            pass
+        return False
+
 
     def colorize(self, code):
         code_tag = code[code.rfind('#') + 1:]
@@ -209,7 +216,6 @@ class MessageWorker:
                 chat_title = msg['message']['chat']['title']
                 self.db.add_conf(conf_id, chat_title)
                 if len(msg['message']['text'][6:]) < 10000:
-                    print(msg['message']['text'][6:])
                     try:
                         self.colorize(msg['message']['text'][6:])
                     except Exception as e:

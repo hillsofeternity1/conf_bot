@@ -109,6 +109,8 @@ class DataBase:
 
     def add_alert(self, user_id, conf_id, alert_time, message):
         date = int(dt.datetime.now().strftime("%s"))
+        if len(alert_time) < 4:
+            alert_time = (dt.datetime.now() + dt.timedelta(minutes=int(alert_time[1:]))).strftime("%H%M")
         sql = """INSERT OR IGNORE INTO 
         alert('conf_id', 'user_id', 'created', 'time', 'message') 
         VALUES ('%s','%s','%s','%s','%s')""" % (
@@ -118,7 +120,6 @@ class DataBase:
             alert_time,
             message
         )
-        print('ALERT: ', sql)
         self.execute(sql)
 
     def get_top(self, user_id, conf_id, limit=10):
