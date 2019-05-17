@@ -109,7 +109,8 @@ class DataBase:
 
     def add_alert(self, user_id, conf_id, alert_time, message):
         date = int(dt.datetime.now().strftime("%s"))
-        if len(alert_time) < 4:
+        print(alert_time)
+        if alert_time[0] == '+':
             alert_time = (dt.datetime.now() + dt.timedelta(minutes=int(alert_time[1:]))).strftime("%H%M")
         sql = """INSERT OR IGNORE INTO 
         alert('conf_id', 'user_id', 'created', 'time', 'message') 

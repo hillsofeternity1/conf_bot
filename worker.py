@@ -48,7 +48,7 @@ class MessageWorker:
         except ValueError:
             pass
         try:
-            if (int(string[1:]) > 0) and (string[0] == '+') and (len(string[1:]) < 3):
+            if (int(string[1:]) > 0) and (string[0] == '+') and (len(string[1:]) < 4):
               return string
         except:
             pass
@@ -222,7 +222,8 @@ class MessageWorker:
                         print(e)
                 self.send_img(conf_id)
                 return True
-        except:
+        except Exception as e:
+            print('ERROR: %s' % e)
             return False
         try:
             text = msg['message']['text']

@@ -30,6 +30,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         length = self.headers.get('content-length')
         post_body = self.rfile.read(int(length))
+        print(post_body)
         msg = json.loads(post_body.decode("utf-8"))
         self.worker.handleUpdate(msg)
 
@@ -56,6 +57,8 @@ class WebHook:
             self.httpd.serve_forever()
         except KeyboardInterrupt:
             pass
+        except Exception as e:
+            print("ERROR: %s" % e)
         finally:
             # Clean-up server (close socket, etc.)
             self.httpd.server_close()
