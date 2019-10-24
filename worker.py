@@ -65,166 +65,208 @@ class MessageWorker:
         print("Lexer is defined as %s" % lexer)
         if lexer.name == 'Text only':
             lexer = get_lexer_by_name('python')
-        try:
-            highlight(code, lexer, ImageFormatter(
-                font_size=16,
-                line_number_bg="#242e0c",
-                line_number_fg="#faddf2",
-                line_number_bold=True,
-                font_name='DejaVuSansMono',
-                style=get_style_by_name('monokai')), outfile="code.png")
-        except Exception as e:
-            print(e)
-            return e
+        print(highlight(code, lexer, ImageFormatter(
+            font_size=16,
+            line_number_bg="#242e0c",
+            line_number_fg="#faddf2",
+            line_number_bold=True,
+            font_name='DejaVuSansMono',
+            style=get_style_by_name('monokai')), outfile="code.png"))
+        
 
     def handleUpdate(self, msg):
         try:
-            try:
-                input_message = msg['message']['text']
-                if ('@here' in input_message) or (' @'+self.me['result']['username'] in input_message):
-                    if str(msg['message']['chat']['id']) != "-1001233797421":
-                        print("@here isn't available for '%s' (%s)" % (msg['message']['chat']['title'], msg['message']['chat']['id']))
-                        return
-                    conf_id = msg['message']['chat']['id']
-                    user_id = msg['message']['from']['id']
-                    chat_title = msg['message']['chat']['title']
-                    self.db.add_conf(conf_id, chat_title)
-                    if msg['message']['text'] != '@here':
-                        message = msg['message']['text'].replace('@here', '\n').replace(' @'+self.me['result']['username'], '\n')
-                    else:
-                        message = """I summon you!\n"""
-
-                    users = self.db.here(
-                        user_id=user_id,
-                        conf_id=conf_id
-                    )
-                    for user in users:
-                        message += ' [%s](tg://user?id=%s)' % (user[2], user[1])
-                    self.send(id=conf_id, msg=message)
-                    return True
-            
-                input_message = msg['message']['text'].replace(
-                    '@' + self.me['result']['username'], '')
-            except:
-                input_message = msg['message']['text']
-            if str(msg['message']['chat']['id']) == "-1001233797421":
-                if random.randint(0,300) == 1:
-                    conf_id = msg['message']['chat']['id']
-                    user_id = msg['message']['from']['id']
-                    chat_title = msg['message']['chat']['title']
-                    self.db.add_conf(conf_id, chat_title)
-                    word_aya = self.db.get_random_word(count=1, like="%ая")
-                    word_da = self.db.get_random_word(count=1, like="%да")
-                    msg = "Ты %s %s." % (word_aya[0][0], word_da[0][0])
-                    self.send(id=conf_id, msg=msg)
-                if (input_message[0] == 'я') or (input_message[0] == 'Я'):
-                    if len(input_message) > 3:
-                        conf_id = msg['message']['chat']['id']
-                        user_id = msg['message']['from']['id']
-                        chat_title = msg['message']['chat']['title']
-                        self.db.add_conf(conf_id, chat_title)
-                        answers = ['И чо бля?','Да и похуй.','Ну и хуй с тобой.','Нет я.']
-                        if random.randint(0,100) > 80:
-                            msg = answers[random.randint(0,len(answers)-1)]
-                            self.send(id=conf_id, msg=msg)
-                if (input_message[0:1] == 'Ты') or (input_message[0:1] == 'ты'):
-                    if len(input_message) > 5:
-                        conf_id = msg['message']['chat']['id']
-                        user_id = msg['message']['from']['id']
-                        chat_title = msg['message']['chat']['title']
-                        self.db.add_conf(conf_id, chat_title)
-                        answers = ['Двачую.','Да.', 'А я покакал.', "Винда лучше."]
-                        if random.randint(0,100) > 70:
-                            msg = answers[random.randint(0,len(answers)-1)]
-                            self.send(id=conf_id, msg=msg)
-            if input_message == '/scheme':
+            input_message = msg['message']['text']
+            if input_message == '/help':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
-                chat_title = msg['message']['chat']['title']
+                if msg['message']['chat']['type'] == 'private':
+                    chat_title = conf_id
+                else:
+                    chat_title = msg['message']['chat']['title']
                 self.db.add_conf(conf_id, chat_title)
-                self.send(id=conf_id, msg='```\n' + self.db.scheme + '\n```')
-                return True
-
-            if input_message == '/stat':
+                msg = """
+                Commands:
+                @here   - call all conf users
+                /stat   - show user stat
+                /scheme - print sql schema
+                /reset  - reset user stat
+                /sql    - execute sql
+                /alert  - set alert
+                /code   - highlight code snippet
+                """
+                self.send(id=conf_id, msg=msg)
+            if ('@here' in input_message) or (' @'+self.me['result']['username'] in input_message):
+                if str(msg['message']['chat']['id']) != "-1001233797421":
+                    print("@here isn't available for '%s' (%s)" % (msg['message']['chat']['title'], msg['message']['chat']['id']))
+                    return
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
-                chat_title = msg['message']['chat']['title']
+                if msg['message']['chat']['type'] == 'private':
+                    chat_title = conf_id
+                else:
+                    chat_title = msg['message']['chat']['title']
                 self.db.add_conf(conf_id, chat_title)
+                if msg['message']['text'] != '@here':
+                    message = msg['message']['text'].replace('@here', '\n').replace(' @'+self.me['result']['username'], '\n')
+                else:
+                    message = """I summon you!\n"""
 
-                message = """Here is your top:\n"""
-                top = self.db.get_top(
+                users = self.db.here(
                     user_id=user_id,
                     conf_id=conf_id
                 )
-                for word in top:
-                    message += '*%s*: %s\n' % (word[1], word[0])
+                for user in users:
+                    message += ' [%s](tg://user?id=%s)' % (user[2], user[1])
                 self.send(id=conf_id, msg=message)
                 return True
-
-            if input_message == '/reset':
-                conf_id = msg['message']['chat']['id']
-                user_id = msg['message']['from']['id']
+        
+            input_message = msg['message']['text'].replace(
+                '@' + self.me['result']['username'], '')
+        except:
+            input_message = msg['message']['text']
+#       if str(msg['message']['chat']['id']) == "-1001233797421":
+#           if random.randint(0,300) == 1:
+#               conf_id = msg['message']['chat']['id']
+#               user_id = msg['message']['from']['id']
+#               if msg['message']['chat']['type'] == 'private':
+#                   chat_title = conf_id
+#               else:
+#                   chat_title = msg['message']['chat']['title']
+#               self.db.add_conf(conf_id, chat_title)
+#               word_aya = self.db.get_random_word(count=1, like="%ая")
+#               word_da = self.db.get_random_word(count=1, like="%да")
+#               msg = "Ты %s %s." % (word_aya[0][0], word_da[0][0])
+#               self.send(id=conf_id, msg=msg)
+#           if (input_message[0] == 'я') or (input_message[0] == 'Я'):
+#               if len(input_message) > 3:
+#                   conf_id = msg['message']['chat']['id']
+#                   user_id = msg['message']['from']['id']
+#                   if msg['message']['chat']['type'] == 'private':
+#                       chat_title = conf_id
+#                   else:
+#                       chat_title = msg['message']['chat']['title']
+#                   self.db.add_conf(conf_id, chat_title)
+#                   answers = ['И чо бля?','Да и похуй.','Ну и хуй с тобой.','Нет я.']
+#                   if random.randint(0,100) > 80:
+#                       msg = answers[random.randint(0,len(answers)-1)]
+#                       self.send(id=conf_id, msg=msg)
+#           if (input_message[0:1] == 'Ты') or (input_message[0:1] == 'ты'):
+#               if len(input_message) > 5:
+#                   conf_id = msg['message']['chat']['id']
+#                   user_id = msg['message']['from']['id']
+#                   if msg['message']['chat']['type'] == 'private':
+#                       chat_title = conf_id
+#                   else:
+#                       chat_title = msg['message']['chat']['title']
+#                   self.db.add_conf(conf_id, chat_title)
+#                   answers = ['Двачую.','Да.', 'А я покакал.', "Винда лучше."]
+#                   if random.randint(0,100) > 70:
+#                       msg = answers[random.randint(0,len(answers)-1)]
+#                       self.send(id=conf_id, msg=msg)
+        if input_message == '/scheme':
+            conf_id = msg['message']['chat']['id']
+            user_id = msg['message']['from']['id']
+            if msg['message']['chat']['type'] == 'private':
+                chat_title = conf_id
+            else:
                 chat_title = msg['message']['chat']['title']
-                self.db.add_conf(conf_id, chat_title)
+            self.db.add_conf(conf_id, chat_title)
+            self.send(id=conf_id, msg='```\n' + self.db.scheme + '\n```')
+            return True
 
-                message = """Your stat has been resetted."""
-                self.db.reset(
-                    conf_id=conf_id,
-                    user_id=user_id)
-                return True
-
-            if input_message[:4] == '/sql':
-                conf_id = msg['message']['chat']['id']
-                user_id = msg['message']['from']['id']
+        if input_message == '/stat':
+            conf_id = msg['message']['chat']['id']
+            user_id = msg['message']['from']['id']
+            if msg['message']['chat']['type'] == 'private':
+                chat_title = conf_id
+            else:
                 chat_title = msg['message']['chat']['title']
-                self.db.add_conf(conf_id, chat_title)
-                sql = msg['message']['text'][5:]
+            self.db.add_conf(conf_id, chat_title)
 
-                res = self.db.command(sql)
-                if 'syntax' in str(res) \
-                        or 'ambiguous' in str(res):
-                    self.send(id=conf_id, msg=str(res))
-                    return False
-                try:
-                    msg = '```\n'
-                    for z in res:
-                        for i in z:
-                            msg = msg + str(i) + '\t'
-                        msg = msg + '\n'
-                except:
-                    msg = res
-                self.send(id=conf_id, msg=msg + ' ```')
-                return True
+            message = """Here is your top:\n"""
+            top = self.db.get_top(
+                user_id=user_id,
+                conf_id=conf_id
+            )
+            for word in top:
+                message += '*%s*: %s\n' % (word[1], word[0])
+            self.send(id=conf_id, msg=message)
+            return True
 
-            if input_message[:6] == '/alert':
-                conf_id = msg['message']['chat']['id']
-                user_id = msg['message']['from']['id']
+        if input_message == '/reset':
+            conf_id = msg['message']['chat']['id']
+            user_id = msg['message']['from']['id']
+            if msg['message']['chat']['type'] == 'private':
+                chat_title = conf_id
+            else:
                 chat_title = msg['message']['chat']['title']
-                self.db.add_conf(conf_id, chat_title)
-                msg = msg['message']['text'].split()[1:]
-                alert_time = msg[-1].replace(':', '').replace('.', '').replace(' ', '')
-                if self.isTime(alert_time):
-                    message = " ".join(msg[0:-1])
-                    self.db.add_alert(user_id, conf_id, alert_time, message)
-                    self.send(id=conf_id, msg='Alert created.')
-                return True
+            self.db.add_conf(conf_id, chat_title)
 
-            if input_message[:5] == '/code':
+            message = """Your stat has been resetted."""
+            self.db.reset(
+                conf_id=conf_id,
+                user_id=user_id)
+            return True
+
+        if input_message[:4] == '/sql':
+            conf_id = msg['message']['chat']['id']
+            user_id = msg['message']['from']['id']
+            if msg['message']['chat']['type'] == 'private':
+                chat_title = conf_id
+            else:
+                chat_title = msg['message']['chat']['title']
+            self.db.add_conf(conf_id, chat_title)
+            sql = msg['message']['text'][5:]
+
+            res = self.db.command(sql)
+            if 'syntax' in str(res) \
+                    or 'ambiguous' in str(res):
+                self.send(id=conf_id, msg=str(res))
+                return False
+            try:
+                msg = '```\n'
+                for z in res:
+                    for i in z:
+                        msg = msg + str(i) + '\t'
+                    msg = msg + '\n'
+            except:
+                msg = res
+            self.send(id=conf_id, msg=msg + ' ```')
+            return True
+
+        if input_message[:6] == '/alert':
+            conf_id = msg['message']['chat']['id']
+            user_id = msg['message']['from']['id']
+            if msg['message']['chat']['type'] == 'private':
+                chat_title = conf_id
+            else:
+                chat_title = msg['message']['chat']['title']
+            self.db.add_conf(conf_id, chat_title)
+            msg = msg['message']['text'].split()[1:]
+            alert_time = msg[-1].replace(':', '').replace('.', '').replace(' ', '')
+            if self.isTime(alert_time):
+                message = " ".join(msg[0:-1])
+                self.db.add_alert(user_id, conf_id, alert_time, message)
+                self.send(id=conf_id, msg='Alert created.')
+            return True
+
+        if input_message[:5] == '/code':
 # codefunc
-                conf_id = msg['message']['chat']['id']
-                user_id = msg['message']['from']['id']
+            conf_id = msg['message']['chat']['id']
+            user_id = msg['message']['from']['id']
+            if msg['message']['chat']['type'] == 'private':
+                chat_title = conf_id
+            else:
                 chat_title = msg['message']['chat']['title']
-                self.db.add_conf(conf_id, chat_title)
-                if len(msg['message']['text'][6:]) < 10000:
-                    try:
-                        self.colorize(msg['message']['text'][6:])
-                    except Exception as e:
-                        print(e)
-                self.send_img(conf_id)
-                return True
-        except Exception as e:
-            print('ERROR: %s' % e)
-            return False
+            self.db.add_conf(conf_id, chat_title)
+            if len(msg['message']['text'][6:]) < 10000:
+                try:
+                    self.colorize(msg['message']['text'][6:])
+                except Exception as e:
+                    print(e)
+            self.send_img(conf_id)
+            return True
         try:
             text = msg['message']['text']
             try:
@@ -241,7 +283,10 @@ class MessageWorker:
                 first_name = '_null'
             user_id = msg['message']['from']['id']
             chat_id = msg['message']['chat']['id']
-            chat_title = msg['message']['chat']['title']
+            if msg['message']['chat']['type'] == 'private':
+                chat_title = chat_id
+            else:
+                chat_title = msg['message']['chat']['title']
         except:
             return False
         print("[%s] (%s) %s %s %s: %s" % (chat_title, user_id, username, first_name, last_name, text))
