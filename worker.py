@@ -76,7 +76,11 @@ class MessageWorker:
 
     def handleUpdate(self, msg):
         try:
-            input_message = msg['message']['text']
+            try:
+                input_message = msg['message']['text']
+            except KeyError as excp:
+                print(f"KeyError: {excp}")
+                return True
             if input_message == '/help':
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
@@ -97,9 +101,9 @@ class MessageWorker:
                 """
                 self.send(id=conf_id, msg=msg)
             if ('@here' in input_message) or (' @'+self.me['result']['username'] in input_message):
-                if str(msg['message']['chat']['id']) != "-1001233797421":
-                    print("@here isn't available for '%s' (%s)" % (msg['message']['chat']['title'], msg['message']['chat']['id']))
-                    return
+#               if str(msg['message']['chat']['id']) != "-1001233797421":
+#                   print("@here isn't available for '%s' (%s)" % (msg['message']['chat']['title'], msg['message']['chat']['id']))
+#                   return
                 conf_id = msg['message']['chat']['id']
                 user_id = msg['message']['from']['id']
                 if msg['message']['chat']['type'] == 'private':
@@ -352,7 +356,7 @@ class MessageWorker:
         data = {'chat_id': id}
         files = {'photo': open('code.png', 'rb')}
         r = requests.post(url, files=files, data=data)
-        print(r)
+        #print(r)
       except Exception as e:
         print(e)
 

@@ -30,7 +30,6 @@ class RequestHandler(SimpleHTTPRequestHandler):
 
         length = self.headers.get('content-length')
         post_body = self.rfile.read(int(length))
-        print(post_body)
         msg = json.loads(post_body.decode("utf-8"))
         self.worker.handleUpdate(msg)
 
@@ -42,7 +41,7 @@ class WebHook:
     def __init__(self,
                  certfile,
                  keyfile,
-                 address='0.0.0.0',
+                 address=settings.parser.get('bot', 'bind_address'),
                  port=8443,
                  RequestHandler=RequestHandler):
 
