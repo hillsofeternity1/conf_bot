@@ -195,7 +195,7 @@ class MessageWorker:
                 if count > max_sen:
                     count = max_sen
             except:
-                count = 30
+                count = 5
             for i in range(0, count):
                 rand_messages.append(self.db.get_random_message())
             rand_text = " ".join(rand_messages)

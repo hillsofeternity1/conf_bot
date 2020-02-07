@@ -58,7 +58,7 @@ def get(text):
                 current_word = random_weighted_word
                 sentence.append(current_word)
             except:
-                pass
+                break
         sentence[0] = sentence[0].capitalize()
         return ' '.join(sentence) + '.'
         return sentence
@@ -85,6 +85,6 @@ def get(text):
     text_list = text.split()
     model = make_markov_model(text_list)
 
-    generated = generate_random_sentence(30, model)
+    generated = generate_random_sentence(random.randint(5,30), model)
     generated = generated.replace(' END', '.')
     return generated
