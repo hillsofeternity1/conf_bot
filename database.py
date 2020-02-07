@@ -162,7 +162,11 @@ class DataBase:
 
     def get_random_word(self, count=1, like="%"):
         sql = "SELECT word FROM word WHERE word LIKE '%s' ORDER BY random() LIMIT %s" % (like, count)
-        print(sql)
+        result = self.execute(sql)
+        return(result)
+
+    def get_random_message(self):
+        sql = "SELECT text FROM xxx_message ORDER BY RANDOM() LIMIT 1"
         result = self.execute(sql)
         return(result)
 
