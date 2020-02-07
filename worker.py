@@ -15,6 +15,7 @@ import random
 from string import punctuation
 from urllib.parse import urlencode
 from database import DataBase
+from markov.simple import get
 
 from pygments import highlight
 from pygments.lexers import PythonLexer
@@ -177,6 +178,33 @@ class MessageWorker:
                 chat_title = msg['message']['chat']['title']
             self.db.add_conf(conf_id, chat_title)
             self.send(id=conf_id, msg='```\n' + self.db.scheme + '\n```')
+            return True
+
+        if input_message[:7] == '/markov':
+            conf_id = msg['message']['chat']['id']
+            user_id = msg['message']['from']['id']
+            if msg['message']['chat']['type'] == 'private':
+                chat_title = conf_id
+            else:
+                chat_title = msg['message']['chat']['title']
+            self.db.add_conf(conf_id, chat_title)
+            rand_messages = list()
+            max_sen = 100
+            try:
+                count = int(msg['message']['text'][8:])
+                if count > max_sen:
+                    count = max_sen
+            except:
+                count = 30
+            for i in range(0, count):
+                rand_messages.append(self.db.get_random_message())
+            rand_text = " ".join(rand_messages)
+            gen_text = get(rand_text)
+            try:
+                gen_text = gen_text.lower().capitalize()
+            except:
+                pass
+            self.send(id=conf_id, msg=f'{gen_text}')
             return True
 
         if input_message == '/stat':

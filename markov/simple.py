@@ -38,7 +38,7 @@ class Dictogram(dict):
             if(index > random_int):
                 return list_of_keys[i]
 
-def get():
+def get(text):
     def generate_random_start(model):
         if 'END' in model:
             seed_word = 'END'
@@ -52,10 +52,13 @@ def get():
         current_word = generate_random_start(markov_model)
         sentence = [current_word]
         for i in range(0, length):
-            current_dictogram = markov_model[current_word]
-            random_weighted_word = current_dictogram.return_weighted_random_word()
-            current_word = random_weighted_word
-            sentence.append(current_word)
+            try:
+                current_dictogram = markov_model[current_word]
+                random_weighted_word = current_dictogram.return_weighted_random_word()
+                current_word = random_weighted_word
+                sentence.append(current_word)
+            except:
+                pass
         sentence[0] = sentence[0].capitalize()
         return ' '.join(sentence) + '.'
         return sentence
@@ -70,14 +73,6 @@ def get():
                 markov_model[data[i]] = Dictogram([data[i+1]])
         return markov_model
 
-    text = """
-    Олег Соколов, преподававший в СПбГУ, в ноябре был задержан в Петербурге, 
-    в его рюкзаке обнаружили две отпиленные женские руки. Соколов признался, 
-    что убил и расчленил свою бывшую студентку Анастасию Ещенко, с которой 
-    его связывали близкие отношения. Адвокат Соколова Александр Почуев заявлял, 
-    что не исключает «и версию самооговора» его подзащитного и иные версии 
-    преступления, «вплоть до мистических»."""
-
 # simple cleanup
     text = text.replace('—','')
     text = text.replace('«','')
@@ -90,6 +85,6 @@ def get():
     text_list = text.split()
     model = make_markov_model(text_list)
 
-    generated = generate_random_sentence(50, model)
+    generated = generate_random_sentence(30, model)
     generated = generated.replace(' END', '.')
-    print(generated)
+    return generated

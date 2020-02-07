@@ -168,7 +168,7 @@ class DataBase:
     def get_random_message(self):
         sql = "SELECT text FROM xxx_message ORDER BY RANDOM() LIMIT 1"
         result = self.execute(sql)
-        return(result)
+        return(result[0][0])
 
     def here(self, user_id, conf_id):
         sql = """
