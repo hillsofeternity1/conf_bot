@@ -196,8 +196,14 @@ class MessageWorker:
                     count = max_sen
             except:
                 count = 5
-            for i in range(0, count):
-                rand_messages.append(self.db.get_random_message())
+            try:
+                use_all = bool(msg['message']['text'][8:])
+            except:
+                use_all = False
+            if use_all:
+                rand_messages.append(self.db.get_random_message(count=count))
+            else:
+                rand_messages.append(self.db.get_random_message(conf_id, count=count))
             rand_text = " ".join(rand_messages)
             gen_text = get(rand_text)
             try:

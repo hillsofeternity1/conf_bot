@@ -165,8 +165,14 @@ class DataBase:
         result = self.execute(sql)
         return(result)
 
-    def get_random_message(self):
-        sql = "SELECT text FROM xxx_message ORDER BY RANDOM() LIMIT 1"
+    def get_random_message(self, conf_id=None, count=1):
+        if not conf_id:
+            print('get random message from all DB')
+            sql = "SELECT text FROM xxx_message ORDER BY RANDOM() LIMIT %s" % count
+        else:
+            print('get random message from %s ' % conf_id)
+            sql = """SELECT x.text FROM xxx_message x LEFT JOIN relations r ON r.msg_id == x.id 
+                  WHERE r.conf_id = '%s' ORDER BY RANDOM() DESC LIMIT 1""" % conf_id
         result = self.execute(sql)
         return(result[0][0])
 
