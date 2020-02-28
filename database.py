@@ -167,14 +167,17 @@ class DataBase:
 
     def get_random_message(self, conf_id=None, count=1):
         if not conf_id:
-            print('get random message from all DB')
+            print('get random message from all DB, count %s' % count)
             sql = "SELECT text FROM xxx_message ORDER BY RANDOM() LIMIT %s" % count
         else:
-            print('get random message from %s ' % conf_id)
+            print('get random message from %s, count: %s' % (conf_id, count))
             sql = """SELECT x.text FROM xxx_message x LEFT JOIN relations r ON r.msg_id == x.id 
-                  WHERE r.conf_id = '%s' ORDER BY RANDOM() DESC LIMIT 1""" % conf_id
+                  WHERE r.conf_id = '%s' ORDER BY RANDOM() DESC LIMIT %s""" % (conf_id, count)
         result = self.execute(sql)
-        return(result[0][0])
+        messages = list()
+        for msg in result:
+            messages.append(msg[0])
+        return(messages)
 
     def here(self, user_id, conf_id):
         sql = """

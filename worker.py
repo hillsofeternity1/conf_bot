@@ -188,7 +188,6 @@ class MessageWorker:
             else:
                 chat_title = msg['message']['chat']['title']
             self.db.add_conf(conf_id, chat_title)
-            rand_messages = list()
             max_sen = 100
             try:
                 count = int(msg['message']['text'][8:])
@@ -201,9 +200,10 @@ class MessageWorker:
             except:
                 use_all = False
             if use_all:
-                rand_messages.append(self.db.get_random_message(count=count))
+                rand_messages = self.db.get_random_message(count=count)
             else:
-                rand_messages.append(self.db.get_random_message(conf_id, count=count))
+                rand_messages = self.db.get_random_message(conf_id, count=count)
+                print(count, rand_messages)
             rand_text = " ".join(rand_messages)
             gen_text = get(rand_text)
             try:
